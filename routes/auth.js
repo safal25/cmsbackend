@@ -101,7 +101,7 @@ router.post("/signin",
                 }
 });
 
-router.post('/forget-password',
+router.post('/forgot-password',
             body('email','Please enter a valid email').isEmail(),
             async (req,res)=>{
                 const errors=validationResult(req);
@@ -127,7 +127,7 @@ router.post('/forget-password',
 
                     const msg = {
                         to: user.email, 
-                        from: 'safalkhampariya80@gmail.com',
+                        from: process.env.SENDGRID_EMAIL,
                         subject: 'Password reset code',
                         html: `<p>Your password reset code is : <strong>${code}</strong> please reset before it expires in 1 hour</p>`,
                     }
