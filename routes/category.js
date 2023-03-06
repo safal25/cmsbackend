@@ -24,4 +24,55 @@ router.post("/category",validateToken,isAdminUser,async (req,res)=>{
 
 });
 
+router.get("/categories",validateToken,isAdminUser,async (req,res)=>{
+
+    try {
+
+        const categories=await Category.find().sort({createdAt : -1});
+
+        return res.json({categories,success : true});
+        
+    } catch (error) {
+        return res.json({error : "Internal server error, please try again in some time",success : false})
+    }
+
+})
+
+router.delete("/category/:slug",validateToken,isAdminUser,async (req,res)=>{
+
+    try {
+
+        const {slug}=req.params;
+
+        const category=await Category.findOneAndDelete({slug});
+
+        return res.json({success : true});
+        
+    } catch (error) {
+        return res.json({error : "Internal server error, please try again in some time",success : false})
+    }
+
+});
+
+router.put("/category/:slug",validateToken,isAdminUser,async (req,res)=>{
+    try {
+
+        const {slug}=req.params;
+        const {name}=req.body;
+        // console.log(name);
+        const newSlug=name.toLowerCase().replace(" ","-");
+        // console.log(newSlug);
+        const category=await Category.findOneAndUpdate({slug},
+                                                        {name,slug : newSlug}
+                                                        ,{new : true});
+        // console.log(category);
+        return res.json({category,success : true});
+
+        
+    } catch (error) {
+        return res.json({error : "Internal server error, please try again in some time",success : false})
+    }
+});
+
+
 module.exports=router;

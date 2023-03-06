@@ -8,6 +8,8 @@ const Token=require('../models/token');
 const {randomBytes}=require('node:crypto');
 const sgMail=require('@sendgrid/mail');
 const {body,validationResult}=require('express-validator');
+const {validateToken,isAdminUser}=require('../middlewares/checkAuth');
+
 
 dotenv.config();
 
@@ -185,5 +187,11 @@ router.post('/reset-password',
                     return res.json({error : "Internal server error please try again later after some time or contact support",success : false});
                 }
             })
+
+
+router.post("/verify-admin",validateToken,isAdminUser,(req,res)=>{
+
+    return res.json({success : true});
+})
 
 module.exports=router;
