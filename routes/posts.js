@@ -33,7 +33,7 @@ router.post("/create-post",validateToken,isAdminUser,
 
                 try {
 
-                    const {title,content,categories}=req.body;
+                    const {title,content,categories,featuredImage}=req.body;
                     const slug=title.toLowerCase().replace(" ","-");
 
                     const checkPost=await Post.findOne({slug});
@@ -54,7 +54,8 @@ router.post("/create-post",validateToken,isAdminUser,
                         categories : ids,
                         content,
                         postedBy : req.userId,
-                        slug
+                        slug,
+                        featuredImage,
                     });
 
                     return res.json({post : newPost,success : true});

@@ -38,7 +38,7 @@ router.post('/upload-image',validateToken,(req,res)=>{
                 postedBy : req.userId,
             });
 
-            return res.json({imageUrl :image.url ,success:true});
+            return res.json({image});
         })
     
         
