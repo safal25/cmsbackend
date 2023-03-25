@@ -51,5 +51,33 @@ router.post('/upload-image',validateToken,(req,res)=>{
 
 });
 
+router.get('/get-images',validateToken,async(req,res)=>{
+    try {
+
+        const images=await Image.find().sort({createdAt : -1});
+
+        return res.json({images,success : true});
+        
+    } catch (error) {
+        return res.json({message : "Internal server error",success : false});
+    }
+});
+
+router.delete('/delete-image/:id',validateToken,async(req,res)=>{
+
+    try {
+
+        const imageId=req.params.id;
+
+        await Image.findByIdAndDelete(imageId);
+
+        return res.json({success : true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({message : "Internal server error",success : false})
+    }
+
+});
 
 module.exports=router;
