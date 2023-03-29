@@ -10,7 +10,7 @@ const {body,validationResult}=require("express-validator");
 router.get("/get-posts",async (req,res)=>{
 
     try {
-        const posts=await Post.find().sort({createdAt : -1});
+        const posts=await Post.find().populate('featuredImage','url').sort({createdAt : -1});
 
         return res.json({posts,success : true});
     } catch (error) {
@@ -19,6 +19,7 @@ router.get("/get-posts",async (req,res)=>{
     
 
 });
+
 
 
 router.post("/create-post",validateToken,isAdminUser,
@@ -65,6 +66,28 @@ router.post("/create-post",validateToken,isAdminUser,
                     console.log(error);
                     return res.json({error : "Internal server error",success : false});
                 }
+});
+
+router.get('/get-post/:slug',async (req,res)=>{
+
+    try {
+
+        const slug=req.params.slug;
+
+        const post = await Post.findOne({slug}).populate('featuredImage','url')
+                                                .populate('postedBy','username')
+                                                .populate({path : 'categories',select : 'name'});
+
+
+        return res.json({post,success : true});
+
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({message : "Internal server error", success : false});
+    }
+
+
 });
 
 module.exports=router;
