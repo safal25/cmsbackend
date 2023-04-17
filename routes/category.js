@@ -1,5 +1,5 @@
 const express=require('express');
-
+const slugify=require('slugify');
 const router=express.Router();
 
 const {validateToken,isAdminUser}=require('../middlewares/checkAuth');
@@ -11,7 +11,7 @@ router.post("/category",validateToken,isAdminUser,async (req,res)=>{
     try {
 
         const {name}=req.body;
-        const slug=name.toLowerCase().replace(" ","-");
+        const slug=slugify(name);
 
         const newCategory=await Category.create({name,slug});
 
@@ -60,7 +60,7 @@ router.put("/category/:slug",validateToken,isAdminUser,async (req,res)=>{
         const {slug}=req.params;
         const {name}=req.body;
         // console.log(name);
-        const newSlug=name.toLowerCase().replace(" ","-");
+        const newSlug=slugify(name);
         // console.log(newSlug);
         const category=await Category.findOneAndUpdate({slug},
                                                         {name,slug : newSlug}
