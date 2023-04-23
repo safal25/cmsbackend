@@ -53,4 +53,26 @@ const isAdminUser=async (req,res,next)=>{
 
 }
 
-module.exports={validateToken,isAdminUser};
+const isAuthor=async (req,res,next)=>{
+
+    try {
+
+        const user=await User.findById(req.userId);
+
+        if(!user){
+            res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+        if(user.role!=="Author"){
+            res.status(403).json({error : "Forbidden",success : false});
+        }
+        
+        next();
+        
+    } catch (error) {
+        return res.json({error : "Internal server error, please try again in sometime",success : false});
+    }
+
+}
+
+module.exports={validateToken,isAdminUser,isAuthor};

@@ -42,7 +42,8 @@ router.post("/signup",
                 const newuser=await User.create({
                     email : email,
                     username : username,
-                    password : hash
+                    password : hash,
+                    
                 });
 
                 const data={

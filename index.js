@@ -24,6 +24,7 @@ app.use("/api/auth",require('./routes/auth'));
 app.use("/api",require("./routes/category"));
 app.use("/api/posts",require("./routes/posts"));
 app.use("/api/media",require('./routes/media'));
+app.use("/api/user",require('./routes/adminUser'));
 
 
 app.listen(port,()=>{
