@@ -1,13 +1,13 @@
 const express = require('express');
 
 const router = express.Router();
-const { validateToken, isAdminUser } = require("../middlewares/checkAuth");
+const { validateToken, isAdminUser, canCreateRead, canUpdateDelete } = require("../middlewares/checkAuth");
 const Post = require("../models/Post");
 const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 const slugify = require('slugify');
 
-router.get("/get-posts", async (req, res) => {
+router.get("/get-posts" ,validateToken, async (req, res) => {
 
     try {
         const posts = await Post.find().populate('featuredImage', 'url').sort({ createdAt: -1 });
@@ -20,9 +20,25 @@ router.get("/get-posts", async (req, res) => {
 
 });
 
+router.get("/get-posts/author", validateToken, async (req,res)=>{
+
+    try {
+        const posts=await Post.find({postedBy : req.userId}).sort({createdAt : -1});
+
+        return res.json({posts, success : true});
+
+    } catch (error) {
+
+        return res.json({ error : "Internal server error",success : false});
+        
+    }
 
 
-router.post("/create-post", validateToken, isAdminUser,
+});
+
+
+
+router.post("/create-post", validateToken, canCreateRead,
     body('title', 'Title should have atleast 5 chars').isLength({ min: 5 }),
     async (req, res) => {
 
@@ -91,7 +107,7 @@ router.get('/get-post/:slug', async (req, res) => {
 
 });
 
-router.delete('/delete-post/:id', validateToken, isAdminUser, async (req, res) => {
+router.delete('/delete-post/:id', validateToken, canUpdateDelete, async (req, res) => {
 
     try {
         const postId = req.params.id;
@@ -107,7 +123,7 @@ router.delete('/delete-post/:id', validateToken, isAdminUser, async (req, res) =
 
 });
 
-router.put("/edit-post/:id", validateToken, isAdminUser,
+router.put("/edit-post/:id", validateToken, canUpdateDelete,
     body('title', 'Title should have atleast 5 chars').isLength({ min: 5 }),
     async (req, res) => {
 

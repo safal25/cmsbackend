@@ -2,7 +2,7 @@ const express=require('express');
 const slugify=require('slugify');
 const router=express.Router();
 
-const {validateToken,isAdminUser}=require('../middlewares/checkAuth');
+const {validateToken,isAdminUser,canCreateRead}=require('../middlewares/checkAuth');
 
 const Category=require('../models/Category');
 
@@ -24,7 +24,7 @@ router.post("/category",validateToken,isAdminUser,async (req,res)=>{
 
 });
 
-router.get("/categories",validateToken,isAdminUser,async (req,res)=>{
+router.get("/categories",validateToken,canCreateRead,async (req,res)=>{
 
     try {
 

@@ -59,6 +59,7 @@ router.post('/create-user',validateToken,isAdminUser,
                         }
     
                         const data=await sgMail.send(msg);
+                        console.log(data);
                     }
 
                     return res.json({user : rest,success : true});

@@ -1,7 +1,8 @@
 require('dotenv').config();
 const jwt=require("jsonwebtoken")
 const User=require("../models/User");
-
+const Post=require("../models/Post");
+const Image=require("../models/Image");
 
 const validateToken=async (req,res,next)=>{
 
@@ -38,11 +39,11 @@ const isAdminUser=async (req,res,next)=>{
         const user=await User.findById(req.userId);
 
         if(!user){
-            res.status(401).json({error : "Unauthorized",success : false});
+           return res.status(401).json({error : "Unauthorized",success : false});
         }
 
         if(user.role!=="Admin"){
-            res.status(403).json({error : "Forbidden",success : false});
+           return res.status(403).json({error : "Forbidden",success : false});
         }
         
         next();
@@ -60,11 +61,11 @@ const isAuthor=async (req,res,next)=>{
         const user=await User.findById(req.userId);
 
         if(!user){
-            res.status(401).json({error : "Unauthorized",success : false});
+            return res.status(401).json({error : "Unauthorized",success : false});
         }
 
         if(user.role!=="Author"){
-            res.status(403).json({error : "Forbidden",success : false});
+            return res.status(403).json({error : "Forbidden",success : false});
         }
         
         next();
@@ -75,4 +76,97 @@ const isAuthor=async (req,res,next)=>{
 
 }
 
-module.exports={validateToken,isAdminUser,isAuthor};
+const canCreateRead=async (req,res,next)=>{
+    try {
+        const user=await User.findById(req.userId);
+
+        if(!user){
+            return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+        switch(user.role){
+            case "Admin":
+                next();
+                break;
+            case "Author":
+                next();
+                break;
+            default:
+                return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false});
+    }
+
+}
+
+const canUpdateDelete=async (req,res,next)=>{
+
+    try {
+        const user=await User.findById(req.userId);
+
+        if(!user){
+            return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+        switch(user.role){
+            case "Admin":
+                next();
+                break;
+            case "Author":
+                const post=await Post.findById(req.params.id);
+
+                if(user._id.toString()===post.postedBy.toString()){
+                    next();
+                }
+                else{
+                    return res.status(401).json({error : "Unauthorized",success : false});
+                }
+                break;
+            default:
+                return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false});
+    }
+}
+
+const canDeleteMedia=async (req,res,next)=>{
+    try {
+
+        const user=await User.findById(req.userId);
+
+        if(!user){
+            return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+        switch(user.role){
+            case "Admin":
+                next();
+                break;
+            case "Author":
+                const img=await Image.findById(req.params.id);
+
+                if(user._id.toString()===img.postedBy.toString()){
+                    next();
+                }
+                else{
+                    return res.json({error : "You are not authorized to delete this image",success : false});
+                }
+                break;
+            default:
+                return res.status(401).json({error : "Unauthorized",success : false});
+        }
+
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false});
+    }
+}
+
+module.exports={validateToken,isAdminUser,isAuthor,canUpdateDelete,canCreateRead,canDeleteMedia};

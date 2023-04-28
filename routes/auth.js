@@ -8,7 +8,7 @@ const Token=require('../models/token');
 const {randomBytes}=require('node:crypto');
 const sgMail=require('@sendgrid/mail');
 const {body,validationResult}=require('express-validator');
-const {validateToken,isAdminUser}=require('../middlewares/checkAuth');
+const {validateToken,isAdminUser,isAuthor}=require('../middlewares/checkAuth');
 
 
 dotenv.config();
@@ -192,6 +192,10 @@ router.post('/reset-password',
 
 router.post("/verify-admin",validateToken,isAdminUser,(req,res)=>{
 
+    return res.json({success : true});
+})
+
+router.post("/verify-author",validateToken,isAuthor,(req,res)=>{
     return res.json({success : true});
 })
 

@@ -6,7 +6,7 @@ const Image=require('../models/Image');
 const fs=require('fs');
 
 require('dotenv').config();
-const {validateToken}=require('../middlewares/checkAuth');
+const {validateToken,canDeleteMedia}=require('../middlewares/checkAuth');
 
 
 const imagekit=new ImageKit({
@@ -63,7 +63,7 @@ router.get('/get-images',validateToken,async(req,res)=>{
     }
 });
 
-router.delete('/delete-image/:id',validateToken,async(req,res)=>{
+router.delete('/delete-image/:id',validateToken,canDeleteMedia,async(req,res)=>{
 
     try {
 
@@ -75,7 +75,7 @@ router.delete('/delete-image/:id',validateToken,async(req,res)=>{
         
     } catch (error) {
         console.log(error);
-        return res.json({message : "Internal server error",success : false})
+        return res.json({error : "Internal server error",success : false})
     }
 
 });
