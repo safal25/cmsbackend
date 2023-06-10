@@ -7,7 +7,7 @@ const Image=require("../models/Image");
 const validateToken=async (req,res,next)=>{
 
     try {
-        const authorization=req.header('authorization');
+        const authorization=req.header('Authorization');
         if(!authorization){
             return res.status(401).json({error : "Unauthorized access",success : false});
         }

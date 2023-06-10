@@ -7,13 +7,14 @@ const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 const slugify = require('slugify');
 
-router.get("/get-posts" ,validateToken, async (req, res) => {
+router.get("/get-posts" , async (req, res) => {
 
     try {
         const posts = await Post.find().populate('featuredImage', 'url').sort({ createdAt: -1 });
 
         return res.json({ posts, success: true });
     } catch (error) {
+        console.log(error);
         return res.json({ error: "Internal server error", success: false });
     }
 
