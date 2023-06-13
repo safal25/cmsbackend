@@ -85,7 +85,7 @@ router.put('/edit-user/:id',validateToken,isAdminUser,
 
                 try {
 
-                    const {username,email,role,checked}=req.body;
+                    const {username,email,role,checked,image}=req.body;
 
                     let user=null;
                     if(checked){
@@ -97,7 +97,8 @@ router.put('/edit-user/:id',validateToken,isAdminUser,
                             email,
                             username,
                             password : hash,
-                            role
+                            role,
+                            image
                         },{new:true});
 
                     }
@@ -105,7 +106,8 @@ router.put('/edit-user/:id',validateToken,isAdminUser,
                         user=await User.findByIdAndUpdate({_id : req.params.id},{
                             email,
                             username,
-                            role
+                            role,
+                            image
                         },{new : true});
                     }
 
@@ -144,7 +146,7 @@ router.get('/get-users',validateToken,isAdminUser,async (req,res)=>{
 
     try {
 
-        const allUsers=await User.find().select('-password');
+        const allUsers=await User.find().populate('image','url').select('-password');
 
         return res.json({success : true, users : allUsers});
         
@@ -161,7 +163,7 @@ router.get('/get-user/:id',validateToken,isAdminUser,async (req,res)=>{
     try {
 
         const userId=req.params.id;
-        const user=await User.findById(userId).select('-password');
+        const user=await User.findById(userId).populate('image','url').select('-password');
         if(!user){
             return res.status(400).json({message : 'User dosent exists'});
         }
