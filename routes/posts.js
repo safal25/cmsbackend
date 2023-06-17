@@ -7,10 +7,31 @@ const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 const slugify = require('slugify');
 
-router.get("/get-posts" , async (req, res) => {
+
+router.get("/get-post-count",async(req,res)=>{
 
     try {
-        const posts = await Post.find().populate('featuredImage', 'url').sort({ createdAt: -1 });
+
+        const count=await Post.countDocuments();
+        return res.json({count,success : true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message : 'Internal server error'});
+    }
+
+});
+
+router.get("/get-posts/:page" , async (req, res) => {
+
+    try {
+
+        const perPage=6;
+        const page=parseInt(req.params.page);
+        const posts = await Post.find().skip((page-1)*perPage).
+                                               populate('featuredImage', 'url').
+                                               sort({ createdAt: -1 }).
+                                               limit(perPage);
 
         return res.json({ posts, success: true });
     } catch (error) {
@@ -20,6 +41,17 @@ router.get("/get-posts" , async (req, res) => {
 
 
 });
+
+router.get("/get-post-admin",async (req,res)=>{
+    try {
+
+        const posts=await Post.find().select('title slug');
+        return res.json({success : true, posts});
+        
+    } catch (error) {
+        return res.json({error : "Internal Server error",success : false});
+    }
+})
 
 router.get("/get-posts/author", validateToken, async (req,res)=>{
 
