@@ -72,7 +72,7 @@ router.post('/create-user',validateToken,isAdminUser,
 
 });
 
-router.put('/edit-user/:id',validateToken,isAdminUser,
+router.put('/edit-user-by-admin/:id',validateToken,isAdminUser,
             body('username','Username must have atleast 5 chars').isLength({min : 5}),
             body('password','Password must have atleat 8 chars').isLength({min : 8}),
             body('email','Email is invalid').isEmail(),
@@ -141,6 +141,76 @@ router.put('/edit-user/:id',validateToken,isAdminUser,
 });
 
 
+router.put('/edit-user-by-user/:id',validateToken,
+            body('username','Username must have atleast 5 chars').isLength({min : 5}),
+            body('password','Password must have atleat 8 chars').isLength({min : 8}),
+            body('email','Email is invalid').isEmail(),
+            async (req,res)=>{
+
+                const errors=validationResult(req);
+                if(!errors.isEmpty()){
+                    return res.json({error : errors.array()[0].msg,success : false});
+                }
+
+                try {
+
+                    const {username,email,checked,image}=req.body;
+
+                    if(req.params.id!==req.userId){
+                        return res.status(403).json({message : "Unauthorized update, you are not allowed to edit other users profile"});
+                    }
+
+                    let user=null;
+                    if(checked){
+
+                        let salt=await bcrypt.genSalt(10);
+                        let hash=await bcrypt.hash(req.body.password,salt);
+
+                        user=await User.findByIdAndUpdate({_id : req.params.id},{
+                            email,
+                            username,
+                            password : hash,
+                            image
+                        },{new:true});
+
+                    }
+                    else{
+                        user=await User.findByIdAndUpdate({_id : req.params.id},{
+                            email,
+                            username,
+                            image
+                        },{new : true});
+                    }
+
+                    if(!user){
+                        return res.status(400).json({message : "User not found"});
+                    }
+
+                    if(checked){
+                        const msg = {
+                            to: email, 
+                            from: process.env.SENDGRID_EMAIL,
+                            subject: 'Your account has been updated for CMS',
+                            html: `<h1>Hi ${username},</h1> 
+                                    <p>A new password has been generated for your CMS account, following are your creds</p>
+                                    <p>UserName : ${username}</p>
+                                    <p>Password : ${req.body.password}</p>`,
+                        }
+    
+                        const data=await sgMail.send(msg);
+                        console.log(data);
+                    }
+
+                    return res.json({success : true});
+
+                    
+                } catch (error) {
+                    console.log(error);
+                    return res.status(500).json({error : "Internal server error",success : false});
+                }
+
+});
+
 
 router.get('/get-users',validateToken,isAdminUser,async (req,res)=>{
 
@@ -158,7 +228,7 @@ router.get('/get-users',validateToken,isAdminUser,async (req,res)=>{
 
 });
 
-router.get('/get-user/:id',validateToken,isAdminUser,async (req,res)=>{
+router.get('/get-user/:id',validateToken,async (req,res)=>{
 
     try {
 
