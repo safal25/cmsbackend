@@ -4,6 +4,7 @@ const router = express.Router();
 const { validateToken, isAdminUser, canCreateRead, canUpdateDelete } = require("../middlewares/checkAuth");
 const Post = require("../models/Post");
 const Category = require("../models/Category");
+const Comments = require("../models/Comments");
 const { body, validationResult } = require("express-validator");
 const slugify = require('slugify');
 
@@ -128,8 +129,9 @@ router.get('/get-post/:slug', async (req, res) => {
             .populate({ path: 'categories', select: 'name' });
 
 
+        const comments = await Comments.find({postId : post._id}).populate('postedBy','username');
 
-        return res.json({ post, success: true });
+        return res.json({ post, comments,success: true });
 
 
     } catch (error) {
@@ -197,6 +199,29 @@ router.put("/edit-post/:id", validateToken, canUpdateDelete,
             return res.json({ error: "Internal Server error", success: false });
         }
     });
+
+router.post('/add-comment/:postId',validateToken,async (req,res)=>{
+        try {
+
+            const postId=req.params.postId;
+
+            const {comment} = req.body;
+
+            let newComment = await Comments.create({
+                content : comment,
+                postedBy : req.userId,
+                postId
+            })
+
+            newComment = await newComment.populate("postedBy","username");
+
+            return res.json({newComment , success : true});
+
+        } catch (error) {
+            console.log(error);
+            return res.json({ error: "Internal Server error", success: false });
+        }
+});
 
 
 module.exports = router;
