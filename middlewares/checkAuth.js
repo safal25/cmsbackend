@@ -3,6 +3,7 @@ const jwt=require("jsonwebtoken")
 const User=require("../models/User");
 const Post=require("../models/Post");
 const Image=require("../models/Image");
+const Comments=require("../models/Comments");
 
 const validateToken=async (req,res,next)=>{
 
@@ -169,4 +170,48 @@ const canDeleteMedia=async (req,res,next)=>{
     }
 }
 
-module.exports={validateToken,isAdminUser,isAuthor,canUpdateDelete,canCreateRead,canDeleteMedia};
+const canUpdateDeleteComments = async (req,res,next)=>{
+    try {
+
+        const user=await User.findById(req.userId);
+
+        if(!user){
+            return res.status(401).json({error : "Unauthorized", success : false});
+        }
+
+        switch(user.role){
+            case "Admin":
+                next();
+                break;
+            case "Author":
+                const commentAuth = await Comments.findById(req.query.id);
+
+                if(commentAuth.postedBy.toString()===user._id.toString()){
+                    next();
+                }
+                else{
+                    return res.json({error : "You cannot delete someone else's comments", success : false});
+                }
+                break;
+            case "Subscriber":
+                const commentSub = await Comments.findById(req.query.id);
+
+                if(commentSub.postedBy.toString()===user._id.toString()){
+                    next();
+                }
+                else{
+                    return res.json({error : "You cannot delete someone else's comments", success : false});
+                }
+                break;
+            default :
+                return res.status(401).json({error : "Unauthorized",success : false});
+        }
+        
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false})
+    }
+}
+
+module.exports={validateToken,isAdminUser,isAuthor,canUpdateDelete,canCreateRead,canDeleteMedia,canUpdateDeleteComments};

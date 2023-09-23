@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const { validateToken, isAdminUser, canCreateRead, canUpdateDelete } = require("../middlewares/checkAuth");
+const { validateToken, isAdminUser, canCreateRead, canUpdateDelete,canUpdateDeleteComments } = require("../middlewares/checkAuth");
 const Post = require("../models/Post");
 const Category = require("../models/Category");
 const Comments = require("../models/Comments");
@@ -127,7 +127,7 @@ router.get('/get-post/:slug', async (req, res) => {
         const post = await Post.findOne({ slug }).populate('featuredImage', 'url')
             .populate('postedBy', 'username')
             .populate({ path: 'categories', select: 'name' });
-
+        
 
         const comments = await Comments.find({postId : post._id}).populate('postedBy','username');
 
@@ -223,5 +223,79 @@ router.post('/add-comment/:postId',validateToken,async (req,res)=>{
         }
 });
 
+router.get('/get-comment-count',async (req,res)=>{
+
+    try {
+
+        const count =  await Comments.countDocuments();
+
+        return res.json({count,success : true});
+        
+    } catch (error) {
+
+        console.log(error);
+        return res.json({message : "Internal Server error",success : false});
+        
+    }
+
+});
+
+router.get('/get-comments',validateToken,isAdminUser,async (req,res)=>{
+
+    try {
+        const page=parseInt(req.query.page);
+        const perPage=5;
+    
+        const comments = await Comments.find().skip((page-1)*perPage).
+                                               populate('postedBy','username').
+                                               populate('postId','title slug').
+                                               limit(perPage)
+    
+        return res.json({comments,success : true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({message : "Internal Server error",success : false});
+    }
+
+});
+
+router.delete('/delete-comment',validateToken,canUpdateDeleteComments,async (req,res)=>{
+
+    try {
+        
+        const comment=await Comments.findByIdAndDelete(req.query.id);
+        if(!comment){
+            return res.json({error : "Comment not found",success : false});
+        }
+
+        return res.json({comment , success : true});
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false});
+    }
+
+});
+
+router.put('/update-comment',validateToken,canUpdateDeleteComments,async (req,res)=>{
+
+    try {
+
+        const {content}=req.body;
+
+        const comment = await Comments.findByIdAndUpdate(req.query.id,{content},{new : true});
+
+        if(!comment){
+            return res.json({error : "Comment not found", success : false});
+        }
+
+        return res.json({comment,success : true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal Server error",success : false});
+    }
+
+});
 
 module.exports = router;
