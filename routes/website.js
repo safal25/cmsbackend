@@ -1,6 +1,11 @@
 const express = require('express');
 const dotenv=require('dotenv');
 const sgMail=require('@sendgrid/mail');
+const Post = require("../models/Post");
+const Category = require("../models/Category");
+const Comments = require("../models/Comments");
+const User = require("../models/User");
+
 
 const router = express.Router();
 dotenv.config();
@@ -31,6 +36,24 @@ router.post('/contact',async (req,res)=>{
     } catch (error) {
         console.log(error);
         return res.json({error : "Internal server error",success : false});
+    }
+
+});
+
+router.get('/analytics',async (req,res)=>{
+
+    try {
+
+        const postCount = await Post.countDocuments();
+        const commentCount = await Comments.countDocuments();
+        const userCount = await User.countDocuments();
+        const categoryCount =await Category.countDocuments();
+
+        return res.json({postCount,commentCount,userCount,categoryCount,success : true});
+        
+    } catch (error) {
+        
+        return res.status(500).json({error : "Internal server error"});
     }
 
 });
