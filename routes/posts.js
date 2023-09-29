@@ -7,6 +7,7 @@ const Category = require("../models/Category");
 const Comments = require("../models/Comments");
 const { body, validationResult } = require("express-validator");
 const slugify = require('slugify');
+const mongoose = require('mongoose');
 
 
 router.get("/get-post-count",async(req,res)=>{
@@ -139,6 +140,23 @@ router.get('/get-post/:slug', async (req, res) => {
         return res.json({ message: "Internal server error", success: false });
     }
 
+
+});
+
+router.get('/get-post-by-category/:slug' , async (req,res)=>{
+
+    try {
+        const category = await Category.findOne({slug : req.params.slug}).select("_id name");
+
+        const Posts = await Post.find({categories : category._id}).populate('featuredImage','url').
+                                                                   populate('postedBy','username');
+        
+        return res.json({Posts, category, success : true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({error : "Internal server error" , success : "false"})
+    }
 
 });
 

@@ -24,7 +24,7 @@ router.post("/category",validateToken,isAdminUser,async (req,res)=>{
 
 });
 
-router.get("/categories",validateToken,canCreateRead,async (req,res)=>{
+router.get("/categories",async (req,res)=>{
 
     try {
 
