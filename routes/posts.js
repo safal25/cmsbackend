@@ -262,7 +262,7 @@ router.get('/get-comments',validateToken,isAdminUser,async (req,res)=>{
 
     try {
         const page=parseInt(req.query.page);
-        const perPage=5;
+        const perPage=8;
     
         const comments = await Comments.find().skip((page-1)*perPage).
                                                populate('postedBy','username').
